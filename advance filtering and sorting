@@ -1,1 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Multi-Condition Filter Table</title>
+
+  <!-- Bootstrap CSS for modal design -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th {
+      cursor: pointer;
+    }
+    .filter-row {
+      margin-bottom: 10px;
+    }
+    .filter-row input,
+    .filter-row select {
+      padding: 5px;
+      margin-left: 5px;
+    }
+    .filter-row button {
+      margin-left: 10px;
+    }
+    .filter-row label {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Advanced Multi-Condition Filter Table</h2>
+
+  <!-- Button to open the filter modal -->
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">Add Filter</button>
+  <button onclick="resetFilters()" class="btn btn-danger">Clear Filters</button> <!-- Clear Filters button -->
+
+  <!-- Filter Modal -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel">Advanced Filter Panel</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="filter-container">
+            <div class="filter-row" id="filter-row-1">
+              <label>Filter 1:</label>
+              <select class="filter-column">
+                <option value="0">Name</option>
+                <option value="1">Age</option>
+                <option value="2">Job</option>
+              </select>
+              <select class="filter-condition">
+                <option value="=">Equals</option>
+                <option value="like">Contains</option>
+                <option value=">">Greater than</option>
+                <option value="<">Less than</option>
+              </select>
+              <input type="text" class="filter-value" placeholder="Filter Value">
+              <button onclick="removeFilter('filter-row-1')" class="btn btn-danger">Remove</button>
+            </div>
+          </div>
+          <button onclick="addFilter()" class="btn btn-info">Add New Condition</button>
+        </div>
+        <div class="modal-footer">
+          <!-- Apply filter button inside the modal -->
+          <button type="button" class="btn btn-success" onclick="applyFilters()">Apply Filters</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <table id="example" class="display">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Job</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Alice</td>
+        <td>30</td>
+        <td>Developer</td>
+      </tr>
+      <tr>
+        <td>Bob</td>
+        <td>25</td>
+        <td>Designer</td>
+      </tr>
+      <tr>
+        <td>Charlie</td>
+        <td>35</td>
+        <td>Manager</td>
+      </tr>
+      <tr>
+        <td>David</td>
+        <td>28</td>
+        <td>Analyst</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    var table;
+    var filterCount = 1; // Counter for filter rows
+
+    $(document).ready(function() {
+      table = $('#example').DataTable({
+        "language": {
+          "sProcessing": "Processing...",
+          "sLengthMenu": "Show _MENU_ records",
+          "sZeroRecords": "No records found",
+          "sInfo": "Showing _START_ to _END_ of _TOTAL_ records",
+          "sInfoEmpty": "Showing 0 to 0 of 0 records",
+          "sInfoFiltered": "(filtered from _MAX_ records)",
+          "sSearch": "Search:",
+          "oPaginate": {
+            "sFirst": "First",
+            "sPrevious": "Previous",
+            "sNext": "Next",
+            "sLast": "Last"
+          }
+        },
+        "ordering": true,
+        "paging": true,
+        "searching": true,
+        "responsive": true
+      });
+    });
+
+    // Function to add a new filter
+    function addFilter() {
+      filterCount++;
+      var newFilterRow = `
+        <div class="filter-row" id="filter-row-${filterCount}">
+          <label>Filter ${filterCount}:</label>
+          <select class="filter-column">
+            <option value="0">Name</option>
+            <option value="1">Age</option>
+            <option value="2">Job</option>
+          </select>
+          <select class="filter-condition">
+            <option value="=">Equals</option>
+            <option value="like">Contains</option>
+            <option value=">">Greater than</option>
+            <option value="<">Less than</option>
+          </select>
+          <input type="text" class="filter-value" placeholder="Filter Value">
+          <button onclick="removeFilter('filter-row-${filterCount}')" class="btn btn-danger">Remove</button>
+        </div>
+      `;
+      $('#filter-container').append(newFilterRow);
+    }
+
+    // Function to remove a filter
+    function removeFilter(filterId) {
+      $(`#${filterId}`).remove();
+    }
+
+    // Function to apply filters to the table
+    function applyFilters() {
+      var filters = [];
+
+      // Extract all filters
+      $('.filter-row').each(function() {
+        var column = $(this).find('.filter-column').val();
+        var condition = $(this).find('.filter-condition').val();
+        var value = $(this).find('.filter-value').val();
+
+        if (value !== '') {
+          var filter = buildFilter(column, condition, value);
+          filters.push({ column: column, filter: filter });
+        }
+      });
+
+      // Apply filters to the table
+      table.columns().every(function() {
+        var column = this;
+        var columnIndex = column.index();
+        var filterCondition = filters.filter(f => f.column == columnIndex).map(f => f.filter).join(" ");
+
+        if (filterCondition) {
+          column.search(filterCondition, true, false).draw(); // Apply filter with regular expression
+        } else {
+          column.search('').draw(); // Clear filter from column
+        }
+      });
+    }
+
+    // Function to build filter condition
+    function buildFilter(column, condition, value) {
+      switch (condition) {
+        case '=':
+          return '^' + value + '$';  // Equals
+        case 'like':
+          return value;  // Contains
+        case '>':
+          return '^' + value + '$';  // Greater than
+        case '<':
+          return '^' + value + '$';  // Less than
+        default:
+          return value;
+      }
+    }
+
+    // Function to reset filters
+    function resetFilters() {
+      table.columns().search('').draw(); // Clear all filters
+      $('#filter-container').empty();
+      filterCount = 1; // Reset counter
+    }
+  </script>
+
+</body>
+</html>
 
